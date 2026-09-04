@@ -171,25 +171,8 @@ def show_home() -> None:
             <div class="selected-story-banner-content"><div class="card-title">{selected_name}</div><div class="card-desc">선택한 이야기로 정해졌어요</div></div></div>''',
             unsafe_allow_html=True,
         )
-        if st.button("✨ 이야기 만나보기", key="show_story", type="primary"):
-            with st.spinner("한화 기술을 재미있는 이야기로 번역하고 있어요..."):
-                try:
-                    result = generate_story(selected, st.session_state["knowledge"])
-                except StoryGenerationError as error:
-                    st.session_state["generated_story"] = None
-                    st.session_state["page"] = "home"
-                    # Keep detailed cause in the terminal, but do not expose tracebacks or secrets in UI.
-                    print(f"Story generation failed ({error.kind})")
-                    st.error("이야기 생성 중 오류가 발생했습니다. 터미널 로그를 확인해 주세요.")
-                else:
-                    st.session_state["generated_story"] = result
-                    # Image generation is intentionally disabled for now: the current account's
-                    # image quota is zero, while text generation is available and healthy.
-                    st.session_state["generated_image"] = None
-                    st.session_state["image_notice"] = None
-                    st.session_state["page"] = "result"
-                    print("Story saved to session_state['generated_story']")
-                    st.rerun()
+        if st.session_state.get("generation_error"):
+            st.error(st.session_state["generation_error"])
     else:
         st.caption("카드를 하나 골라 이야기의 문을 열어 보세요.")
 
