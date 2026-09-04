@@ -117,14 +117,19 @@ def _knowledge_context(knowledge: dict[str, str]) -> str:
 
 def _get_api_key() -> str | None:
     """Read the key from local environment or Streamlit Cloud Secrets."""
-    api_key = os.getenv("GEMINI_API_KEY")
-    if api_key:
-        return api_key
+    for key_name in ("GEMINI_API_KEY", "GOOGLE_API_KEY"):
+        api_key = os.getenv(key_name)
+        if api_key:
+            return api_key.strip()
     try:
         import streamlit as st
-        return st.secrets.get("GEMINI_API_KEY")
+        for key_name in ("GEMINI_API_KEY", "GOOGLE_API_KEY"):
+            value = st.secrets.get(key_name)
+            if value:
+                return str(value).strip()
     except Exception:
-        return None
+        pass
+    return None
 
 
 def _build_prompt(scenario: str, knowledge: dict[str, str], previous_story: dict[str, Any] | None = None) -> str:
@@ -215,15 +220,23 @@ def generate_story(
 
     try:
         client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=_build_prompt(scenario, knowledge, previous_story),
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                temperature=0.7,
-                max_output_tokens=4096,
-            ),
+        prompt = _build_prompt(scenario, knowledge, previous_story)
+        config = types.GenerateContentConfig(
+            response_mime_type="application/json",
+            temperature=0.7,
+            max_output_tokens=4096,
         )
+        try:
+            response = client.models.generate_content(model=GEMINI_MODEL, contents=prompt, config=config)
+        except Exception as model_error:
+            # Some API keys do not have access to the newest model alias. Retry
+            # with the widely available stable model before showing an error.
+            model_message = str(model_error).lower()
+            if GEMINI_MODEL != "gemini-2.5-flash" and any(token in model_message for token in ("404", "not_found", "not found", "permission")):
+                print("Gemini primary model unavailable; retrying with gemini-2.5-flash")
+                response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt, config=config)
+            else:
+                raise
         print("Gemini response received")
         text = getattr(response, "text", None)
         if not text:
