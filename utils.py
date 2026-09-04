@@ -115,6 +115,18 @@ def _knowledge_context(knowledge: dict[str, str]) -> str:
     return "\n\n".join(f"===== {name} =====\n{text}" for name, text in knowledge.items())
 
 
+def _get_api_key() -> str | None:
+    """Read the key from local environment or Streamlit Cloud Secrets."""
+    api_key = os.getenv("GEMINI_API_KEY")
+    if api_key:
+        return api_key
+    try:
+        import streamlit as st
+        return st.secrets.get("GEMINI_API_KEY")
+    except Exception:
+        return None
+
+
 def _build_prompt(scenario: str, knowledge: dict[str, str], previous_story: dict[str, Any] | None = None) -> str:
     scenario_name = SAMPLE_STORIES.get(scenario, {}).get("name", scenario)
     scenario_description = SAMPLE_STORIES.get(scenario, {}).get("description", "")
@@ -194,7 +206,7 @@ def generate_story(
 ) -> dict[str, Any]:
     """Generate a story with Gemini using the loaded Markdown knowledge."""
     print(f"Gemini API request started (scenario={scenario}, model={GEMINI_MODEL})")
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = _get_api_key()
     if not api_key:
         print("Gemini error: GEMINI_API_KEY is not set")
         raise StoryGenerationError("이야기 생성 중 오류가 발생했습니다. 터미널 로그를 확인해 주세요.", "missing_key")
@@ -242,7 +254,7 @@ def generate_story_image(scenario: str, story: dict[str, Any]) -> bytes:
     The current SDK supports image output through models.generate_content with
     response_modalities=["IMAGE"]. The returned bytes are kept in session_state.
     """
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = _get_api_key()
     if not api_key:
         print("Gemini image error: GEMINI_API_KEY is not set")
         raise ImageGenerationError("삽화 생성에 필요한 API 키가 없습니다.", "missing_key")
