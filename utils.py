@@ -17,7 +17,7 @@ from google.genai import types
 PROJECT_ROOT = Path(__file__).resolve().parent
 load_dotenv(PROJECT_ROOT / ".env")
 # Keep the model in one place so it can be changed without touching UI code.
-GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = "gemini-3.5-flash"
 KNOWLEDGE_FILES = (
     "Hanwha_Technology_Knowledge.md",
     "Hanwha_Technology_Process.md",
@@ -223,8 +223,7 @@ def generate_story(
         prompt = _build_prompt(scenario, knowledge, previous_story)
         config = types.GenerateContentConfig(
             response_mime_type="application/json",
-            temperature=0.7,
-            max_output_tokens=4096,
+            max_output_tokens=8192,
         )
         try:
             response = client.models.generate_content(model=GEMINI_MODEL, contents=prompt, config=config)
