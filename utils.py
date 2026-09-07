@@ -17,7 +17,7 @@ from google.genai import types
 PROJECT_ROOT = Path(__file__).resolve().parent
 load_dotenv(PROJECT_ROOT / ".env")
 # Keep the model in one place so it can be changed without touching UI code.
-GEMINI_MODEL = "gemini-3.6-flash"
+GEMINI_MODEL = "gemini-2.5-flash"
 KNOWLEDGE_FILES = (
     "Hanwha_Technology_Knowledge.md",
     "Hanwha_Technology_Process.md",
