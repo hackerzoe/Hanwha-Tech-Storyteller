@@ -98,9 +98,10 @@ SAMPLE_STORIES: dict[str, dict[str, Any]] = {
 class StoryGenerationError(RuntimeError):
     """Safe, user-facing error for Gemini generation failures."""
 
-    def __init__(self, message: str, kind: str = "api") -> None:
+    def __init__(self, message: str, kind: str = "api", detail: str = "") -> None:
         super().__init__(message)
         self.kind = kind
+        self.detail = detail
 
 
 class ImageGenerationError(RuntimeError):
@@ -253,7 +254,7 @@ def generate_story(
             raise StoryGenerationError("현재 Gemini 모델을 사용할 수 없어요. GEMINI_MODEL 설정을 확인해 주세요.", "model") from exc
         if "timeout" in message or "connection" in message or "network" in message:
             raise StoryGenerationError("Gemini 서버와 연결하지 못했어요. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.", "network") from exc
-        raise StoryGenerationError("Gemini 이야기를 만들지 못했어요. API 설정과 네트워크를 확인한 뒤 다시 시도해 주세요.", "api") from exc
+        raise StoryGenerationError("Gemini 이야기를 만들지 못했어요. API 설정과 네트워크를 확인한 뒤 다시 시도해 주세요.", "api", safe_detail) from exc
 
 
 # Gemini image generation model confirmed through the installed google-genai SDK.

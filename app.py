@@ -111,6 +111,7 @@ def choose_scenario(scenario: str, knowledge: dict[str, str]) -> None:
     except StoryGenerationError as error:
         st.session_state["generated_story"] = None
         st.session_state["generation_error"] = str(error)
+        st.caption(f"진단: {error.kind} | {getattr(error, 'detail', '') or str(error)}")
         st.session_state["page"] = "home"
     else:
         st.session_state["generation_error"] = None
@@ -250,6 +251,7 @@ def show_story() -> None:
                 # Keep the previous result intact on failure.
                 print(f"Story regeneration failed ({error.kind})")
                 st.error("이야기 생성 중 오류가 발생했습니다. 기존 이야기를 유지합니다.")
+                st.caption(f"진단: {error.kind} | {getattr(error, 'detail', '') or str(error)}")
             else:
                 st.session_state["generated_story"] = regenerated
                 st.session_state["generated_image"] = None
