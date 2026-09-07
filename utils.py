@@ -231,9 +231,9 @@ def generate_story(
             # Some API keys do not have access to the newest model alias. Retry
             # with the widely available stable model before showing an error.
             model_message = str(model_error).lower()
-            if GEMINI_MODEL != "gemini-2.5-flash" and any(token in model_message for token in ("404", "not_found", "not found", "permission")):
-                print("Gemini primary model unavailable; retrying with gemini-2.5-flash")
-                response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt, config=config)
+            if any(token in model_message for token in ("404", "not_found", "not found", "permission", "503", "unavailable")):
+                print("Gemini primary model unavailable; retrying with gemini-3.1-flash-lite")
+                response = client.models.generate_content(model="gemini-3.1-flash-lite", contents=prompt, config=config)
             else:
                 raise
         print("Gemini response received")
